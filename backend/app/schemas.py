@@ -11,7 +11,7 @@ class userResponse(userBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
@@ -28,7 +28,7 @@ class planResponse(planBase):
     user_id: int | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
@@ -45,7 +45,7 @@ class taskResponse(taskBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):

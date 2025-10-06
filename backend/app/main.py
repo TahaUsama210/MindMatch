@@ -3,11 +3,14 @@ from pydantic import BaseModel
 from typing import List, Annotated
 from sqlalchemy.orm import Session
 from . import models, schemas, database, auth
-from .auth import bcrypt_context
+from .auth import get_password_hash, get_current_user
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=database.engine)
+
+# Include auth router
+app.include_router(auth.router)
 
 
 
@@ -18,7 +21,7 @@ def create_user(user: schemas.userCreate, db: Session = Depends(database.get_db)
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = models.User(email=user.email, name=user.name, hashed_password = bcrypt_context.hash(user.password))
+    new_user = models.User(email=user.email, name=user.name, hashed_password=get_password_hash(user.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -59,7 +62,7 @@ def delete_user(user_id: int, db: Session = Depends(database.get_db)):
 #PLAN ENDPOINTS
 
 @app.post("/plans/", response_model=schemas.planResponse)
-def create_plan(plan: schemas.planCreate, db: Session = Depends(database.get_db)):
+def create_plan(plan: schemas.planCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     db_plan = db.query(models.Plan).filter(models.Plan.name == plan.name).first()
     if db_plan:
         raise HTTPException(status_code=400, detail="Plan name already exists")
@@ -104,7 +107,7 @@ def delete_plan(plan_id: int, db: Session = Depends(database.get_db)):
 
 #TASK ENDPOINTS
 @app.post("/tasks/", response_model=schemas.taskResponse)
-def create_task(task: schemas.taskCreate, db: Session = Depends(database.get_db)):
+def create_task(task: schemas.taskCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     db_user = db.query(models.User).filter(models.User.id == task.user_id).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="User does not exist")
