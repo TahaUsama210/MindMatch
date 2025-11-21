@@ -5,7 +5,7 @@ class userBase(BaseModel):
     name: str
 
 class userCreate(userBase):
-    password: str  # Extra field for creation
+    password: str  
 
 class userResponse(userBase):
     id: int
@@ -53,8 +53,4 @@ class Token(BaseModel):
     token_type: str
 
 
-# class taskGenerateRequest(BaseModel):
-#     user_id: int
-#     plan_id: int
-#     context: str #additional context for task generation
 

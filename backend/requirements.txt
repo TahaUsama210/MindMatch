@@ -7,4 +7,4 @@ pydantic
 groq
 python-jose[cryptography]
 passlib[bcrypt]
-python-dotenv
+python-dotenvpython-dotenv

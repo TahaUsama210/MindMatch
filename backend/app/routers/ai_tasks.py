@@ -36,12 +36,10 @@ def generate_tasks(
     - **num_tasks**: Number of tasks to generate (1-10, default 5)
     """
     try:
-        # Verify the plan exists and optionally belongs to the user
         plan = db.query(models.Plan).filter(models.Plan.id == request.plan_id).first()
         if not plan:
             raise HTTPException(status_code=404, detail="Plan not found")
         
-        # Generate tasks using AI
         tasks = ai_task_generator.generate_tasks_for_goal(
             goal=request.goal,
             user_id=current_user.id,
@@ -88,15 +86,12 @@ def generate_tasks_for_plan(
     - **num_tasks**: Number of tasks to generate (1-10, default 5)
     """
     try:
-        # Get the plan
         plan = db.query(models.Plan).filter(models.Plan.id == plan_id).first()
         if not plan:
             raise HTTPException(status_code=404, detail="Plan not found")
         
-        # Use plan name and description as the goal
         goal = f"{plan.name}. {plan.description or ''}"
         
-        # Generate tasks
         tasks = ai_task_generator.generate_tasks_for_goal(
             goal=goal,
             user_id=current_user.id,

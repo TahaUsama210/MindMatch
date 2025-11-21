@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas, database, auth
 from .routers import users, plans, tasks, ai_tasks
 from .auth import get_password_hash, get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="MindMatch API",
@@ -12,10 +13,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    )
+
 models.Base.metadata.create_all(bind=database.engine)
 
-# Include routers - Make sure this line is here
-app.include_router(auth.router)  # This should give you /auth/token
+app.include_router(auth.router)  
 app.include_router(users.router)
 app.include_router(plans.router)
 app.include_router(tasks.router)

@@ -6,12 +6,11 @@ from ..auth import get_password_hash
 class UserService:
     @staticmethod
     def create_user(user: schemas.userCreate, db: Session):
-        # Check if user exists
+        
         db_user = db.query(models.User).filter(models.User.email == user.email).first()
         if db_user:
             raise HTTPException(status_code=400, detail="Email already registered")
         
-        # Create new user
         new_user = models.User(
             email=user.email, 
             name=user.name, 

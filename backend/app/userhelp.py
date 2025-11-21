@@ -5,10 +5,12 @@ from .models import User, Plan, Task
 import os
 import json
 from typing import List, Dict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class AITaskGenerator:
     def __init__(self):
-        # Get API key from environment variable
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
             raise ValueError("GROQ_API_KEY environment variable is not set. Please set it in your .env file.")
@@ -26,7 +28,6 @@ class AITaskGenerator:
         Generate tasks based on a user's goal using AI.
         """
         
-        # Verify user and plan exist
         user = db.query(User).filter(User.id == user_id).first()
         plan = db.query(Plan).filter(Plan.id == plan_id).first()
         
@@ -35,7 +36,6 @@ class AITaskGenerator:
         if not plan:
             raise ValueError(f"Plan with ID {plan_id} not found")
         
-        # Create AI prompt
         prompt = f"""
 You are a task planning assistant. A user named {user.name} wants to achieve the following goal:
 
@@ -62,7 +62,6 @@ Do not include any other text, explanations, or markdown formatting. Just the JS
 """
         
         try:
-            # Call Groq API
             chat_completion = self.client.chat.completions.create(
                 messages=[
                     {
@@ -79,19 +78,15 @@ Do not include any other text, explanations, or markdown formatting. Just the JS
                 max_tokens=1000
             )
             
-            # Parse AI response
             response_content = chat_completion.choices[0].message.content.strip()
             
-            # Remove markdown code blocks if present
             if response_content.startswith("```"):
                 response_content = response_content.split("```")[1]
                 if response_content.startswith("json"):
                     response_content = response_content[4:]
             
-            # Parse JSON
             tasks_data = json.loads(response_content)
             
-            # Create tasks in database
             created_tasks = []
             for task_data in tasks_data:
                 new_task = Task(
@@ -103,10 +98,8 @@ Do not include any other text, explanations, or markdown formatting. Just the JS
                 db.add(new_task)
                 created_tasks.append(new_task)
             
-            # Commit all tasks at once
             db.commit()
             
-            # Refresh all tasks to get their IDs
             for task in created_tasks:
                 db.refresh(task)
             
@@ -141,7 +134,7 @@ Provide 3-5 helpful suggestions or tips for achieving this goal. Be concise and 
                         "content": prompt
                     }
                 ],
-                model="llama-3.3-70b-versatile",  # FIXED: Changed from openai/gpt-oss-120b
+                model="llama-3.3-70b-versatile",
                 temperature=0.7,
                 max_tokens=500
             )
@@ -151,5 +144,4 @@ Provide 3-5 helpful suggestions or tips for achieving this goal. Be concise and 
         except Exception as e:
             raise Exception(f"Failed to get suggestions: {str(e)}")
 
-# Create a singleton instance
 ai_task_generator = AITaskGenerator()
