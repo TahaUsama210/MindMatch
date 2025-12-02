@@ -10,6 +10,10 @@ from jose import JWTError, jwt
 from .database import SessionLocal, engine, get_db
 from .models import User, Plan, Task
 from .schemas import userCreate, userResponse, Token
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter(
     prefix="/auth",
@@ -17,7 +21,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-SECRET_KEY = "bigpoop"
+SECRET_KEY = os.getenv("SECRET_KEY", "your_generated_secret_key_here")
 ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
